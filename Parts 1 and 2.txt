@@ -1,0 +1,100 @@
+My part:
+from datetime import datetime, time
+from enum import Enum
+from typing import Dict, List
+
+class Availability(Enum):
+    # Status options for caregiver availability
+    PREFERRED = "preferred"
+    AVAILABLE = "available"
+    UNAVAILABLE = "unavailable"
+
+class Shift:
+    # Define shift times
+    AM_START = time(7, 0)
+    AM_END = time(13, 0)
+    PM_START = time(13, 0)
+    PM_END = time(19, 0)
+
+    def __init__(self, is_am: bool):
+        self.is_am = is_am
+        self.start_time = self.AM_START if is_am else self.PM_START
+        self.end_time = self.AM_END if is_am else self.PM_END
+
+    def __str__(self):
+        shift_name = "AM" if self.is_am else "PM"
+        return f"{shift_name} Shift ({self.start_time.strftime('%I:%M %p')} - {self.end_time.strftime('%I:%M %p')})"
+
+class Caregiver:
+    def __init__(self, name: str, phone: str, email: str, pay_rate: float):
+        self.name = name
+        self.phone = phone
+        self.email = email
+        self.pay_rate = pay_rate
+        self.hours = 0
+        # Default schedule - all shifts available
+        self.availability = {
+            'monday': {'am': Availability.AVAILABLE, 'pm': Availability.AVAILABLE},
+            'tuesday': {'am': Availability.AVAILABLE, 'pm': Availability.AVAILABLE},
+            'wednesday': {'am': Availability.AVAILABLE, 'pm': Availability.AVAILABLE},
+            'thursday': {'am': Availability.AVAILABLE, 'pm': Availability.AVAILABLE},
+            'friday': {'am': Availability.AVAILABLE, 'pm': Availability.AVAILABLE},
+            'saturday': {'am': Availability.AVAILABLE, 'pm': Availability.AVAILABLE},
+            'sunday': {'am': Availability.AVAILABLE, 'pm': Availability.AVAILABLE}
+        }
+
+    def set_availability(self, day: str, shift: str, status: Availability):
+        # Input validation
+        day = day.lower()
+        shift = shift.lower()
+        if day not in self.availability:
+            raise ValueError(f"Invalid day: {day}")
+        if shift not in ['am', 'pm']:
+            raise ValueError(f"Invalid shift: {shift}")
+        if not isinstance(status, Availability):
+            raise ValueError(f"Invalid availability status: {status}")
+        
+        self.availability[day][shift] = status
+
+    def get_availability(self, day: str, shift: str) -> Availability:
+        day = day.lower()
+        shift = shift.lower()
+        return self.availability[day][shift]
+
+    def set_weekly_availability(self, day: str, status: Availability):
+        # Set both shifts for given day
+        self.set_availability(day, 'am', status)
+        self.set_availability(day, 'pm', status)
+
+    def add_hours(self, hours: float):
+        self.hours += hours
+
+    def __str__(self):
+        return f"Caregiver: {self.name}\nContact: {self.phone}, {self.email}\nPay Rate: ${self.pay_rate}/hr"
+
+class CaregiverManager:
+    def __init__(self):
+        self.caregivers: List[Caregiver] = []
+
+    def add_caregiver(self, caregiver: Caregiver):
+        self.caregivers.append(caregiver)
+
+    def remove_caregiver(self, caregiver_name: str):
+        self.caregivers = [cg for cg in self.caregivers if cg.name != caregiver_name]
+
+    def get_caregiver(self, name: str) -> Caregiver:
+        for caregiver in self.caregivers:
+            if caregiver.name.lower() == name.lower():
+                return caregiver
+        raise ValueError(f"Caregiver not found: {name}")
+
+    def get_available_caregivers(self, day: str, shift: str) -> List[Caregiver]:
+        # Return caregivers who are available or prefer this shift
+        return [cg for cg in self.caregivers 
+                if cg.get_availability(day, shift) in 
+                [Availability.AVAILABLE, Availability.PREFERRED]]
+
+    def get_preferred_caregivers(self, day: str, shift: str) -> List[Caregiver]:
+        # Return caregivers who prefer this shift
+        return [cg for cg in self.caregivers 
+                if cg.get_availability(day, shift) == Availability.PREFERRED]
