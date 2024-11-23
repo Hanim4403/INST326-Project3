@@ -1,0 +1,27 @@
+My part:
+from datetime import time  # Importing time-related modules
+from enum import Enum  # Import Enum to represent caregiver availability statuses
+
+# Enum class for caregiver availability status
+class Availability(Enum):
+    PREFERRED = "preferred"    # Preferred shift
+    AVAILABLE = "available"    # Available shift
+    UNAVAILABLE = "unavailable"  # Unavailable shift
+
+# Shift class to represent AM and PM shifts
+class Shift:
+    AM_START = time(7, 0)  # Start time for AM shift
+    AM_END = time(13, 0)   # End time for AM shift
+    PM_START = time(13, 0)  # Start time for PM shift
+    PM_END = time(19, 0)   # End time for PM shift
+
+    def __init__(self, is_am: bool):
+        # Initialize shift as AM or PM
+        self.is_am = is_am
+        self.start_time = self.AM_START if is_am else self.PM_START  # Set start time based on shift type
+        self.end_time = self.AM_END if is_am else self.PM_END        # Set end time based on shift type
+
+    def __str__(self):
+        # String representation for the shift, formatted with times
+        shift_name = "AM" if self.is_am else "PM"
+        return f"{shift_name} Shift ({self.start_time.strftime('%I:%M %p')} - {self.end_time.strftime('%I:%M %p')})"
