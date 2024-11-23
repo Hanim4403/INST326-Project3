@@ -1,1 +1,3 @@
-# INST326-Projedct3
+# Amr did part 1 & 2
+# Hani did part 3
+# Ria did part 4
